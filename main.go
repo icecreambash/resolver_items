@@ -6,11 +6,25 @@ import (
 	"AinedIndexChessCLI/helpers"
 	"AinedIndexChessCLI/services"
 	"fmt"
+	"github.com/joho/godotenv"
 	"log"
+	"os"
 	"runtime"
 	"sync"
 	"time"
 )
+
+func loadEnv() {
+	err := godotenv.Load()
+
+	if err != nil {
+		panic("Error loading .env file")
+	}
+}
+
+func init() {
+	loadEnv()
+}
 
 func main() {
 	// Ограничиваем количество доступных потоков
@@ -18,7 +32,7 @@ func main() {
 	start := time.Now()
 
 	// Подключаемся к центральной базе
-	db := databases.GetCon("developer_master")
+	db := databases.GetCon(os.Getenv("DATABASE_MASTER_TABLE"))
 
 	//s3client, err := s3.NewS3Client()
 	//if err != nil {
@@ -27,8 +41,11 @@ func main() {
 
 	// Создание клиента Elasticsearch
 	client, err := databases.NewClient(databases.Config{
-		Addresses: []string{"http://localhost:9200"},
+		Addresses: []string{os.Getenv("ELASTICSEARCH_HOST")},
+		Username:  os.Getenv("ELASTICSEARCH_USER"),
+		Password:  os.Getenv("ELASTICSEARCH_PASSWORD"),
 	})
+
 	if err != nil {
 		log.Fatalf("Error creating Elasticsearch client: %v", err)
 	}
@@ -70,7 +87,7 @@ func main() {
 		go func(tenants []db_models.Tenant) {
 			defer wg.Done()
 			for _, tenant := range tenants {
-				tenantDB := databases.GetCon(tenant.ID.String())
+				tenantDB := databases.GetCon(os.Getenv("DATABASE_PREFIX") + tenant.ID.String())
 				mu.Lock()
 				fmt.Println("Starting collect data in tenant: " + tenant.ID.String())
 				mu.Unlock()
