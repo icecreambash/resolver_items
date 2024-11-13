@@ -42,7 +42,7 @@ func main() {
 	// Создание клиента Elasticsearch
 	client, err := databases.NewClient(databases.Config{
 		Addresses: []string{os.Getenv("ELASTICSEARCH_HOST")},
-		Username:  os.Getenv("ELASTICSEARCH_USER"),
+		Username:  os.Getenv("ELASTICSEARCH_USERNAME"),
 		Password:  os.Getenv("ELASTICSEARCH_PASSWORD"),
 	})
 
