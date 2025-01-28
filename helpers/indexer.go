@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"github.com/elastic/go-elasticsearch/v8/esapi"
 	"github.com/google/uuid"
+	"os"
 )
 
 // Indexer оборачивает клиента Elasticsearch для работы с индексами
@@ -22,6 +23,13 @@ func NewIndexer(client *databases.Client) *Indexer {
 
 // IndexData индексирует данные в указанном индексе
 func (indexer *Indexer) IndexData(index string, data interface{}) error {
+
+	prefix := os.Getenv("ELASTIC_PREFIX")
+
+	if prefix != "" {
+		index = prefix + "_" + index
+	}
+
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return fmt.Errorf("error marshalling data to JSON: %v", err)
@@ -51,6 +59,12 @@ func (indexer *Indexer) IndexData(index string, data interface{}) error {
 
 // DeleteOldDocuments удаляет документы, которые соответствуют заданному условию
 func (indexer *Indexer) DeleteOldDocuments(index string) error {
+
+	prefix := os.Getenv("ELASTIC_PREFIX")
+
+	if prefix != "" {
+		index = prefix + "_" + index
+	}
 
 	query := map[string]interface{}{
 		"query": map[string]interface{}{
